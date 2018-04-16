@@ -1,6 +1,7 @@
 package com.protech.permissionstest;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -36,7 +37,6 @@ public class MainActivity extends AppCompatActivity
         });
 
 
-
         findViewById(R.id.button_camera).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -49,13 +49,28 @@ public class MainActivity extends AppCompatActivity
     }
 
 
+    // for multiple permission
+    public static boolean hasPermissions(Context context, String... permissions) {
+        if (context != null && permissions != null) {
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+
+
+
     //  checkPermission... SMS
     public void checkPermissionSendSms() {
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
                 == PackageManager.PERMISSION_GRANTED) {
 
-           // Snackbar.make(mLayout, R.string.send_sms_permission_available, Snackbar.LENGTH_LONG).show();
+            // Snackbar.make(mLayout, R.string.send_sms_permission_available, Snackbar.LENGTH_LONG).show();
 
             sendSms(); // permission is already granted
 
@@ -73,7 +88,7 @@ public class MainActivity extends AppCompatActivity
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 == PackageManager.PERMISSION_GRANTED) {
 
-           // Snackbar.make(mLayout, R.string.camera_permission_available, Snackbar.LENGTH_LONG).show();
+            // Snackbar.make(mLayout, R.string.camera_permission_available, Snackbar.LENGTH_LONG).show();
 
             startCamera(); // permission is already granted
 
@@ -134,7 +149,6 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-
     // onRequestPermissionsResult
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -178,9 +192,6 @@ public class MainActivity extends AppCompatActivity
         String number = "12346556";
         startActivity(new Intent(Intent.ACTION_VIEW, Uri.fromParts("sms", number, null)));
     }
-
-
-
 
 
     public void startCamera() {
