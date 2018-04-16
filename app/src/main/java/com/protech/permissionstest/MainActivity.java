@@ -8,15 +8,24 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity
         implements ActivityCompat.OnRequestPermissionsResultCallback {
 
-    public static final int PERMISSION_REQUEST_SEND_SMS = 1;
-    public static final int PERMISSION_REQUEST_CAMERA = 2;
+    public static final int MULTIPLE_PERMISSIONS = 10;
+
+
+    String[] permissions = {
+            Manifest.permission.SEND_SMS,
+            Manifest.permission.CAMERA,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
     private View mLayout;
 
@@ -27,178 +36,62 @@ public class MainActivity extends AppCompatActivity
         mLayout = findViewById(R.id.main_layout);
 
 
-        findViewById(R.id.button_sms).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                checkPermissionSendSms();
+                if (checkPermissions()) {
 
+                    action();
+
+                }
             }
         });
-
-
-        findViewById(R.id.button_camera).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                checkPermissionCamera();
-            }
-        });
-
-
     }
 
 
-    // for multiple permission
-    public static boolean hasPermissions(Context context, String... permissions) {
-        if (context != null && permissions != null) {
-            for (String permission : permissions) {
-                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
-                    return false;
-                }
+
+    private  boolean checkPermissions() {
+        int result;
+        List<String> listPermissionsNeeded = new ArrayList<>();
+        for (String p : permissions) {
+            result = ContextCompat.checkSelfPermission(getApplication() ,p);
+            if (result != PackageManager.PERMISSION_GRANTED) {
+                listPermissionsNeeded.add(p);
             }
+        }
+        if (!listPermissionsNeeded.isEmpty()) {
+            ActivityCompat.requestPermissions(this, listPermissionsNeeded.toArray(new String[listPermissionsNeeded.size()]),MULTIPLE_PERMISSIONS );
+            return false;
         }
         return true;
     }
 
 
 
-
-    //  checkPermission... SMS
-    public void checkPermissionSendSms() {
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
-                == PackageManager.PERMISSION_GRANTED) {
-
-            // Snackbar.make(mLayout, R.string.send_sms_permission_available, Snackbar.LENGTH_LONG).show();
-
-            sendSms(); // permission is already granted
-
-        } else {
-
-            requestPermissionSms(); //permission is missing and must be requested
-        }
-
-    }
-
-
-    // checkPermission ... CAMERA
-    public void checkPermissionCamera() {
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                == PackageManager.PERMISSION_GRANTED) {
-
-            // Snackbar.make(mLayout, R.string.camera_permission_available, Snackbar.LENGTH_LONG).show();
-
-            startCamera(); // permission is already granted
-
-        } else {
-
-            requestPermissionCamera(); //permission is missing and must be requested
-        }
-    }
-
-
-    // requestPermission ... SMS
-    public void requestPermissionSms() {
-
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.SEND_SMS)) {
-
-            Snackbar.make(mLayout, R.string.send_sms_access_required,
-                    Snackbar.LENGTH_INDEFINITE).setAction(R.string.ok, new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]
-                                    {Manifest.permission.SEND_SMS},
-                            PERMISSION_REQUEST_SEND_SMS);
-                }
-            }).show();
-
-        } else {
-
-            ActivityCompat.requestPermissions(this, new String[]{
-                    Manifest.permission.SEND_SMS}, PERMISSION_REQUEST_SEND_SMS);
-
-        }
-    }
-
-
-    // requestPermission ... CAMERA
-    public void requestPermissionCamera() {
-
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
-
-            Snackbar.make(mLayout, R.string.camera_access_required,
-                    Snackbar.LENGTH_INDEFINITE).setAction(R.string.ok, new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]
-                                    {Manifest.permission.CAMERA},
-                            PERMISSION_REQUEST_CAMERA);
-                }
-            }).show();
-
-        } else {
-
-            ActivityCompat.requestPermissions(this, new String[]{
-                    Manifest.permission.CAMERA}, PERMISSION_REQUEST_CAMERA);
-
-        }
-    }
-
-
     // onRequestPermissionsResult
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == PERMISSION_REQUEST_SEND_SMS) {
-            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Snackbar.make(mLayout, R.string.send_sms_access_granted,
-                        Snackbar.LENGTH_SHORT).show();
-
-                sendSms();
-
-            } else {
-
-                Snackbar.make(mLayout, R.string.send_sms_access_denied,
-                        Snackbar.LENGTH_SHORT).show();
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MULTIPLE_PERMISSIONS:{
+                if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    // permissions granted.
+                } else {
+                    String permissionsTmp = "";
+                    for (String per : permissions) {
+                        permissionsTmp += "\n" + per;
+                    }
+                    // permissions list of don't granted permission
+                }
+                return;
             }
         }
-
-
-        if (requestCode == PERMISSION_REQUEST_CAMERA) {
-            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Snackbar.make(mLayout, R.string.camera_access_granted,
-                        Snackbar.LENGTH_SHORT).show();
-
-                startCamera();
-
-            } else {
-
-                Snackbar.make(mLayout, R.string.camera_access_denied,
-                        Snackbar.LENGTH_SHORT).show();
-            }
-        }
-
-
     }
 
 
-    public void sendSms() {
+    public void action() {
 
         String number = "12346556";
         startActivity(new Intent(Intent.ACTION_VIEW, Uri.fromParts("sms", number, null)));
     }
-
-
-    public void startCamera() {
-
-        Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
-        startActivityForResult(intent, 0);
-    }
-
-
 }
